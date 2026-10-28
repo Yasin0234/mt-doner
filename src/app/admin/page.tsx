@@ -37,6 +37,9 @@ import {
   Heart,
   PlusCircle,
   Eye,
+  Camera,
+  Image as LucideImage,
+  Star,
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -101,6 +104,49 @@ export default function AdminPage() {
     { label: 'Kola / İçecek', url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80' },
     { label: 'Baklava / Tatlı', url: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=800&q=80' },
   ];
+
+  // Compress and convert image to lightweight data URL for gallery upload
+  const processImageFile = (file: File, callback: (dataUrl: string) => void) => {
+    if (!file.type.startsWith('image/')) {
+      notify('error', 'Lütfen geçerli bir görsel dosyası (JPG, PNG, WebP) seçin.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 900;
+        const MAX_HEIGHT = 700;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          callback(dataUrl);
+          notify('success', 'Görsel galeriden başarıyla yüklendi.');
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   // 1. Verify Authentication
   useEffect(() => {
@@ -744,55 +790,105 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-neutral-300 block mb-1.5">
-                    Tutar / Fiyat ({settings?.currency || '₺'}) *
-                  </label>
-                  <input
-                    type="number"
-                    value={newProdPrice}
-                    onChange={(e) => setNewProdPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                    placeholder="Örn: 320"
-                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-neutral-300 block mb-1.5">
-                    Görsel URL
-                  </label>
-                  <input
-                    type="text"
-                    value={newProdImage}
-                    onChange={(e) => setNewProdImage(e.target.value)}
-                    placeholder="https://... veya aşağıdaki şablonlardan seçin"
-                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-300 block mb-1.5">
+                  Tutar / Fiyat ({settings?.currency || '₺'}) *
+                </label>
+                <input
+                  type="number"
+                  value={newProdPrice}
+                  onChange={(e) => setNewProdPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder="Örn: 320"
+                  className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                  required
+                />
               </div>
 
-              {/* Preset Image Chips */}
-              <div>
-                <label className="text-[11px] font-semibold text-neutral-400 block mb-1.5">
-                  Hazır Görsel Şablonları (Dokunarak Seçebilirsiniz):
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {presetImages.map((img, i) => (
+              {/* Image Selection & Gallery Upload */}
+              <div className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                    <Camera className="w-4 h-4 text-amber-500" />
+                    <span>Ürün Görseli (Galeriden Seç veya URL Gir)</span>
+                  </label>
+                  {newProdImage && (
                     <button
                       type="button"
-                      key={i}
-                      onClick={() => setNewProdImage(img.url)}
-                      className={`text-[10px] px-2.5 py-1 rounded-lg border transition-colors ${
-                        newProdImage === img.url
-                          ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400'
-                          : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-white'
-                      }`}
+                      onClick={() => setNewProdImage('')}
+                      className="text-[10px] text-neutral-400 hover:text-red-400"
                     >
-                      {img.label}
+                      Görseli Kaldır
                     </button>
-                  ))}
+                  )}
+                </div>
+
+                {/* Gallery File Upload Button */}
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <label className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-neutral-900 hover:bg-neutral-800 border-2 border-dashed border-amber-500/50 hover:border-amber-400 rounded-xl text-amber-400 font-bold text-xs cursor-pointer transition-all shadow-sm">
+                    <Camera className="w-4 h-4" />
+                    <span>📸 Galeriden / Dosyadan Resim Yükle</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) processImageFile(file, (url) => setNewProdImage(url));
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <div className="w-full sm:w-64">
+                    <input
+                      type="text"
+                      value={newProdImage}
+                      onChange={(e) => setNewProdImage(e.target.value)}
+                      placeholder="veya Görsel URL yapıştırın (https://...)"
+                      className="w-full px-3 py-2.5 bg-neutral-900 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Live Preview if image is chosen */}
+                {newProdImage && (
+                  <div className="flex items-center gap-3 p-2.5 bg-neutral-900 rounded-xl border border-neutral-800">
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-neutral-950 border border-amber-500/50 shrink-0">
+                      <img
+                        src={newProdImage}
+                        alt="Seçilen Ürün Görseli"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-emerald-400 font-bold block">✓ Görsel Seçildi</span>
+                      <span className="text-[11px] text-neutral-400 line-clamp-1">
+                        {newProdImage.startsWith('data:') ? 'Galeriden yüklendi' : newProdImage}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Preset Image Chips */}
+                <div>
+                  <label className="text-[11px] font-semibold text-neutral-400 block mb-1.5">
+                    veya Hazır Şablonlardan Seçin:
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {presetImages.map((img, i) => (
+                      <button
+                        type="button"
+                        key={i}
+                        onClick={() => setNewProdImage(img.url)}
+                        className={`text-[10px] px-2.5 py-1 rounded-lg border transition-colors ${
+                          newProdImage === img.url
+                            ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400'
+                            : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                        }`}
+                      >
+                        {img.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -1180,6 +1276,24 @@ export default function AdminPage() {
                 />
               </div>
 
+              {/* Google Review Redirect URL */}
+              <div className="bg-neutral-950 p-4 rounded-2xl border border-amber-500/30">
+                <label className="text-xs font-bold text-amber-400 flex items-center gap-1.5 mb-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <span>Google Değerlendirme & Yorum Sayfası URL&apos;si</span>
+                </label>
+                <input
+                  type="text"
+                  value={settingsForm.googleReviewUrl || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, googleReviewUrl: e.target.value })}
+                  placeholder="https://search.google.com/local/writereview?placeid=..."
+                  className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500 font-mono"
+                />
+                <p className="text-[11px] text-neutral-400 mt-1.5 leading-relaxed">
+                  Müşteriler menüdeki <span className="text-amber-400 font-bold">&quot;Yorum Yap&quot;</span> butonuna bastığında otomatik olarak burada belirttiğiniz Google yorum aktarma sayfasına yönlendirilir.
+                </p>
+              </div>
+
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-extrabold text-sm py-3 px-4 rounded-xl shadow-lg shadow-amber-500/20 active:scale-98 transition-all flex items-center justify-center gap-2"
@@ -1383,16 +1497,57 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-neutral-300 block mb-1">
-                  Görsel URL
+              {/* Image in Edit Modal with Gallery Upload */}
+              <div className="bg-neutral-950 p-3.5 rounded-xl border border-neutral-800 space-y-2.5">
+                <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                  <Camera className="w-4 h-4 text-amber-500" />
+                  <span>Ürün Görseli (Galeriden Seç veya URL Düzenle)</span>
                 </label>
-                <input
-                  type="text"
-                  value={editingProduct.image}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
-                />
+
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <label className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-neutral-900 hover:bg-neutral-800 border-2 border-dashed border-amber-500/50 hover:border-amber-400 rounded-xl text-amber-400 font-bold text-xs cursor-pointer transition-all">
+                    <Camera className="w-4 h-4" />
+                    <span>📸 Galeriden Yeni Resim Seç</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          processImageFile(file, (url) =>
+                            setEditingProduct({ ...editingProduct, image: url })
+                          );
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <div className="w-full sm:w-48">
+                    <input
+                      type="text"
+                      value={editingProduct.image}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                      placeholder="veya Görsel URL"
+                      className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                {editingProduct.image && (
+                  <div className="flex items-center gap-2 p-2 bg-neutral-900 rounded-lg border border-neutral-800">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-950 border border-amber-500/50 shrink-0">
+                      <img
+                        src={editingProduct.image}
+                        alt="Önizleme"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-[11px] text-neutral-400 line-clamp-1">
+                      {editingProduct.image.startsWith('data:') ? 'Galeriden yüklendi' : editingProduct.image}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>

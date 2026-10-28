@@ -11,7 +11,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductModal from '@/components/ProductModal';
 import CartDrawer from '@/components/CartDrawer';
 import WaiterModal from '@/components/WaiterModal';
-import { Sparkles, Utensils, Shield, Heart } from 'lucide-react';
+import { Sparkles, Utensils, Shield, Heart, Star, MessageSquarePlus } from 'lucide-react';
 
 function MenuContent() {
   const searchParams = useSearchParams();
@@ -253,17 +253,63 @@ function MenuContent() {
         </div>
       )}
 
+      {/* Google Review Banner */}
+      {settings.googleReviewUrl && (
+        <section className="max-w-5xl mx-auto px-4 w-full my-6">
+          <div className="bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900 border border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-amber-500/5">
+            <div className="text-center sm:text-left space-y-1">
+              <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-amber-400" />
+                ))}
+                <span className="text-xs font-black text-white ml-1.5">5.0 Müşteri Memnuniyeti</span>
+              </div>
+              <h4 className="text-sm font-extrabold text-white">
+                Deneyiminizi Google&apos;da Paylaşın
+              </h4>
+              <p className="text-xs text-neutral-400">
+                Berlin lezzetlerimizi beğendiniz mi? Görüşleriniz bizim için çok değerli!
+              </p>
+            </div>
+
+            <a
+              href={settings.googleReviewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all shrink-0"
+            >
+              <MessageSquarePlus className="w-4 h-4" />
+              <span>Yorum Yap (Google)</span>
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* Footer */}
-      <footer className="mt-auto border-t border-neutral-900 bg-neutral-950/80 py-8 px-4 text-center text-neutral-500 text-xs">
-        <div className="max-w-5xl mx-auto space-y-2">
+      <footer className="mt-auto border-t border-neutral-900 bg-neutral-950 py-8 px-4 text-center text-xs">
+        <div className="max-w-5xl mx-auto space-y-3">
           <div className="flex items-center justify-center gap-2 font-bold text-neutral-300">
             <span>{settings.name}</span>
             <span>•</span>
             <span className="text-amber-500 font-semibold">{settings.slogan}</span>
           </div>
           <p className="text-[11px] text-neutral-400">{settings.address}</p>
-          <div className="pt-2 text-[10px] text-neutral-400">
-            QR Web Menü ve Sipariş Sistemi © {new Date().getFullYear()} - Berlin Usulü Döner
+
+          <div className="pt-3 border-t border-neutral-900/80 space-y-1">
+            <div className="text-[11px] font-semibold text-neutral-400">
+              QR Web Menü ve Sipariş Sistemi Ver: 1.0
+            </div>
+            <div className="text-[11px] text-neutral-400">
+              © 2026 -{' '}
+              <a
+                href="https://korkutsoftware.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-400 hover:text-amber-300 font-bold transition-colors underline decoration-amber-500/40 underline-offset-2"
+              >
+                Korkut Teknoloji Yazılım ve Medya A.Ş.
+              </a>
+            </div>
           </div>
         </div>
       </footer>

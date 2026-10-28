@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag, Bell, Wifi, Clock, Phone, MapPin, X, Shield } from 'lucide-react';
+import { ShoppingBag, Bell, Wifi, Clock, Phone, MapPin, X, Shield, Star, MessageSquareQuote } from 'lucide-react';
 import { RestaurantSettings } from '@/types/menu';
 
 interface HeaderProps {
@@ -60,6 +60,20 @@ export default function Header({
                 <span className="w-2 h-2 rounded-full bg-amber-400" />
                 <span>Masa {tableNumber}</span>
               </div>
+            )}
+
+            {/* Google Review Button */}
+            {settings.googleReviewUrl && (
+              <a
+                href={settings.googleReviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all shadow-sm active:scale-95"
+                title="Google'da Bizi Değerlendirin / Yorum Yap"
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>Yorum Yap</span>
+              </a>
             )}
 
             {/* Restaurant Info Trigger */}
@@ -159,6 +173,21 @@ export default function Header({
                   <div className="text-neutral-300 text-xs mt-0.5">{settings.address}</div>
                 </div>
               </div>
+
+              {settings.googleReviewUrl && (
+                <a
+                  href={settings.googleReviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20 transition-all font-bold text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <span>Google'da Bizi Değerlendirin / Yorum Yap</span>
+                  </div>
+                  <span className="text-neutral-400 text-[10px]">↗</span>
+                </a>
+              )}
             </div>
 
             <button

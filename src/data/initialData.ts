@@ -306,4 +306,5 @@ export const INITIAL_SETTINGS: RestaurantSettings = {
   currency: '₺',
   tableCount: 20,
   instagram: '@mtdonerberlin',
+  googleReviewUrl: 'https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4',
 };

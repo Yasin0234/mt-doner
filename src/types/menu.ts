@@ -49,6 +49,7 @@ export interface RestaurantSettings {
   currency: string;
   tableCount: number;
   instagram?: string;
+  googleReviewUrl?: string;
 }
 
 export interface CartItemOption {
